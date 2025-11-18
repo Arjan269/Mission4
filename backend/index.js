@@ -2,34 +2,42 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const { getTinaResponse } = require('./services/tinaService');
+const { buildTinaPrompt } = require('./prompts/tinaPrompt');
 
-// Load environment variables from .env
 dotenv.config();
-
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON body
+app.use(express.json());
 
 // -----------------------------
-// Test route to check server
+// Test route
 // -----------------------------
 app.get('/', (req, res) => {
   res.send('Tina backend is running!');
 });
 
 // -----------------------------
-// Tina chat route
+// Chat route
 // -----------------------------
 app.post('/api/tina/chat', async (req, res) => {
   try {
     const { history } = req.body;
 
     if (!history || !Array.isArray(history)) {
-      return res.status(400).json({ error: "Invalid request: 'history' array is required" });
+      return res.status(400).json({ error: "Invalid request: 'history' array required" });
     }
 
-    const reply = await getTinaResponse(history);
+    // Build Tina persona prompt with conversation history
+    const tinaPrompt = buildTinaPrompt(history);
+
+    // Send the persona prompt as the user's input to Gemini
+    const modelHistory = [
+      { role: "user", text: tinaPrompt }
+    ];
+
+    const reply = await getTinaResponse(modelHistory);
+
     res.json({ reply });
 
   } catch (err) {
@@ -39,7 +47,7 @@ app.post('/api/tina/chat', async (req, res) => {
 });
 
 // -----------------------------
-// Global error handling
+// Global error handler
 // -----------------------------
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
