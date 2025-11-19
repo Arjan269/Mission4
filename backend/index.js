@@ -10,18 +10,21 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// Enable CORS for all routes from your frontend
+// Enable CORS for local dev and Docker
 app.use(cors({
-  origin: 'http://localhost:5173',  
+  origin: ['http://localhost:5173', 'http://frontend:80'], // frontend container for Docker + local dev
   methods: ['GET','POST','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // -----------------------------
-// Routes
+// Test route
 // -----------------------------
 app.get('/', (req, res) => res.send('Tina backend is running!'));
 
+// -----------------------------
+// Chat route
+// -----------------------------
 app.use('/api/tina', require('./routes/tinaRoutes'));
 
 // -----------------------------
