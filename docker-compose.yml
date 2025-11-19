@@ -1,26 +1,15 @@
-version: "3.9"  # recommended, not required
-
+version: "3.9"
 services:
   backend:
     build: ./backend
     container_name: mission4_server
     ports:
       - "3000:3000"
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}  # Make sure this exists in your host .env
-    networks:
-      - mission4_network
 
   frontend:
     build: ./frontend
     container_name: mission4_client
     ports:
-      - "4000:80"   # exposes Nginx on host port 4000
+      - "4000:80"
     depends_on:
       - backend
-    networks:
-      - mission4_network
-
-networks:
-  mission4_network:
-    driver: bridge

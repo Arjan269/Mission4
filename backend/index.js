@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Enable CORS for local dev and Docker
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://frontend:80'], // frontend container for Docker + local dev
+  origin: ['http://localhost:5173', 'http://localhost:4000'], // frontend container for Docker + local dev
   methods: ['GET','POST','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
