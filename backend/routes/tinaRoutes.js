@@ -1,8 +1,8 @@
-const express = require('express');
-const { chatWithTina } = require('../controllers/tinaController');
+import express from "express";
+import { chatWithTina } from "../controllers/tinaController.js";
 
 const router = express.Router();
 
-router.post('/chat', chatWithTina);
+router.post("/chat", chatWithTina);
 
-module.exports = router;
+export default router;

@@ -1,27 +1,14 @@
 // prompts/tinaPrompt.js
 
-const products = [
-  { name: "Mechanical Breakdown Insurance (MBI)", rules: "Not available for trucks or racing cars" },
-  { name: "Comprehensive Car Insurance", rules: "Only for vehicles less than 10 years old" },
-  { name: "Third Party Car Insurance", rules: "Available for all vehicles" },
-];
-
-function buildTinaPrompt(history) {
-  let prompt = `You are Tina, a friendly and knowledgeable insurance consultant. 
-Ask questions to understand the user's car and insurance needs. 
-At the end, recommend 1 or more of these policies: ${products.map(p => p.name).join(', ')}.
+const buildTinaPrompt = (history) => {
+  return `You are Tina, an insurance consultant AI. Ask questions based on the user's responses to recommend the best car insurance. 
 Business rules:
-${products.map(p => `- ${p.name}: ${p.rules}`).join('\n')}
+- MBI not available to trucks or racing cars
+- Comprehensive only for vehicles < 10 years old
 
-Conversation so far:
+Conversation history:
+${history.map(h => `${h.role}: ${h.text}`).join('\n')}
 `;
-
-  history.forEach(msg => {
-    prompt += `${msg.role === 'user' ? 'User' : 'Tina'}: ${msg.text}\n`;
-  });
-
-  prompt += 'Tina:';
-  return prompt;
-}
+};
 
 module.exports = { buildTinaPrompt };

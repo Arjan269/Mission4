@@ -1,15 +1,14 @@
-// controllers/tinaController.js
-const { getTinaResponse } = require('../services/tinaService');
+import { getTinaResponse } from "../services/tinaService.js";
 
-const chatWithTina = async (req, res, next) => {
+export const chatWithTina = async (req, res) => {
   try {
-    const { history, sessionId } = req.body; 
-    // history is sent from frontend or session storage
-    const reply = await getTinaResponse(history, process.env.GEMINI_API_KEY);
+    const { history } = req.body;
+
+    const reply = await getTinaResponse(history);
+
     res.json({ reply });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    console.error("Error in /api/tina/chat:", err.message);
+    res.status(500).json({ error: "Failed to get response from Tina" });
   }
 };
-
-module.exports = { chatWithTina };
