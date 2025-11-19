@@ -1,35 +1,57 @@
 // services/tinaService.js
 const axios = require('axios');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Gemini API URL
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+// Helper function to remove Markdown symbols
+function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold
+    .replace(/\*(.*?)\*/g, '$1')     // remove italic
+    .replace(/`(.*?)`/g, '$1')       // remove inline code
+    .replace(/[-+>]/g, '')           // remove list symbols
+    .trim();
+}
 
 const getTinaResponse = async (history) => {
-  try {
-    const response = await axios.post(
-      'https://api.generativelanguage.googleapis.com/v1beta2/models/chat-bison-001:generateMessage',
-      {
-        prompt: {
-          messages: history.map(h => ({
-            author: h.role === 'user' ? 'user' : 'system',
-            content: [{ type: 'text', text: h.text }]
-          }))
-        },
-        temperature: 0.7,
-        candidate_count: 1
-      },
-      {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY missing in .env");
+
+  const contents = history.map(msg => ({
+    role: msg.role,
+    parts: [{ text: msg.text }]
+  }));
+
+  const body = { contents };
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await axios.post(GEMINI_API_URL, body, {
         headers: {
-          'Authorization': `Bearer ${GEMINI_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
         }
+      });
+
+      const candidates = response.data.candidates;
+      if (!candidates || candidates.length === 0) throw new Error("No response from Gemini");
+
+      // Join all parts of the response
+      const rawText = candidates[0].content.parts.map(p => p.text).join('');
+
+      // Strip Markdown/extra symbols for a clean conversation
+      return stripMarkdown(rawText);
+
+    } catch (err) {
+      if (err.response?.status === 503 && attempt < 3) {
+        console.warn(`Gemini overloaded, retrying attempt ${attempt}...`);
+        await new Promise(res => setTimeout(res, 2000));
+        continue;
       }
-    );
-
-    return response.data.candidates[0].content[0].text;
-
-  } catch (err) {
-    console.error("Error from Gemini API:", err.response?.data || err.message);
-    throw new Error('Failed to get response from Gemini API');
+      console.error("Gemini API error:", err.response?.data || err.message);
+      throw new Error("Failed to get response from Gemini API");
+    }
   }
 };
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/tina/chat";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -12,21 +12,14 @@ function App() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    // Add user message to history
     const updatedMessages = [...messages, { role: "user", text: input }];
     setMessages(updatedMessages);
     setInput("");
     setLoading(true);
 
     try {
-      // Send full history to backend
-      const response = await axios.post(API_URL, {
-        history: updatedMessages,
-      });
-
+      const response = await axios.post(API_URL, { history: updatedMessages });
       const reply = response.data.reply;
-
-      // Add Tina's reply
       setMessages(prev => [...prev, { role: "model", text: reply }]);
     } catch (err) {
       console.error(err);
@@ -48,10 +41,7 @@ function App() {
       <h1>Tina Insurance Chat</h1>
       <div className="chat-box">
         {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={msg.role === "user" ? "message user" : "message tina"}
-          >
+          <div key={index} className={msg.role === "user" ? "message user" : "message tina"}>
             <strong>{msg.role === "user" ? "You" : "Tina"}:</strong> {msg.text}
           </div>
         ))}
